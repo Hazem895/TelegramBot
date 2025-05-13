@@ -23,6 +23,11 @@ async def my_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     await update.message.reply_text(f"🔎 ID بتاعك هو: {user.id}")
 
+# /chatid
+async def chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat = update.effective_chat
+    await update.message.reply_text(f"Chat ID: {chat.id}")
+
 # إعداد التطبيق وتشغيل البوت
 app = ApplicationBuilder().token(TOKEN).build()
 app.add_handler(CommandHandler("start", start))

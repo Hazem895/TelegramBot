@@ -1,6 +1,9 @@
 import os
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+from keep_alive import keep_alive  # لتشغيل السيرفر الوهمي
+
+keep_alive()
 
 TOKEN = os.environ["BOT_TOKEN"]
 GROUP_CHAT_ID = os.environ["GROUP_CHAT_ID"]
@@ -33,5 +36,6 @@ app = ApplicationBuilder().token(TOKEN).build()
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("start_class", start_class))
 app.add_handler(CommandHandler("myid", my_id))
+app.add_handler(CommandHandler("chatid", chat_id))
 
 app.run_polling()

@@ -1,21 +1,25 @@
 import os
+from flask import Flask, request
+from telegram import Update, Bot
+from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
+from telegram.ext import Dispatcher
+
 from dotenv import load_dotenv
-from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
-from keep_alive import keep_alive
 
 load_dotenv()
-keep_alive()
 
 TOKEN = os.environ["BOT_TOKEN"]
+bot = Bot(token=TOKEN)
+app = Flask(__name__)
+application = ApplicationBuilder().token(TOKEN).build()
 GROUP_CHAT_ID = os.environ["GROUP_CHAT_ID"]
 ALLOWED_USERS = os.environ["ALLOWED_USERS"]
 users_set = set()
 
 # أمر /start في الخاص
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("👋 أهلاً! هبلغكوا لما الحصة تبدأ.")
-
+    await update.message.reply_text("👋 أهلاً! البوت شغال على Webhook.")
+    
 # أمر /start_class من الأشخاص المصرح لهم
 async def start_class(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
@@ -56,12 +60,26 @@ async def mention_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=GROUP_CHAT_ID, text=text, parse_mode=ParseMode.MARKDOWN)
 
 # إعداد التطبيق وتشغيل البوت
-app = ApplicationBuilder().token(TOKEN).build()
-app.add_handler(CommandHandler("start", start))
-app.add_handler(CommandHandler("start_class", start_class))
-app.add_handler(CommandHandler("myid", my_id))
-app.add_handler(CommandHandler("chatid", chat_id))
-app.add_handler(CommandHandler("mention_all", mention_all))
-app.add_handler(MessageHandler(filters.TEXT & filters.Chat(GROUP_CHAT_ID), register_user))  # تسجيل كل اللي بيبعتوا
+application.add_handler(CommandHandler("start", start))
+application.add_handler(CommandHandler("start_class", start_class))
+application.add_handler(CommandHandler("myid", my_id))
+application.add_handler(CommandHandler("chatid", chat_id))
+application.add_handler(CommandHandler("mention_all", mention_all))
+application.add_handler(MessageHandler(filters.TEXT & filters.Chat(GROUP_CHAT_ID), register_user))  # تسجيل كل اللي بيبعتوا
 
-app.run_polling()
+@app.route("/")
+def index():
+    return "بوت شغال ✅"
+
+@app.route(f"/{TOKEN}", methods=["POST"])
+def webhook():
+    update = Update.de_json(request.get_json(force=True), bot)
+    return application.update(update)
+
+if __name__ == "__main__":
+    # شغّل webhook لما ترفع على سيرفر
+    application.run_webhook(
+        listen="0.0.0.0",
+        port=int(os.environ.get("PORT", 10000)),
+        webhook_url=f"{os.environ['RENDER_URL']}/{TOKEN}"
+    )

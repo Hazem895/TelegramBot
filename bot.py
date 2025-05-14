@@ -2,8 +2,15 @@ import os
 from flask import Flask, request
 from telegram import Update, Bot
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, filters
-
 from dotenv import load_dotenv
+import logging
+
+logging.basicConfig(
+    format='[%(asctime)s] %(levelname)s - %(message)s',
+    level=logging.INFO
+)
+
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 
@@ -17,6 +24,7 @@ users_set = set()
 
 # أمر /start في الخاص
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    logger.info(f"/start used by {user.id} - {user.full_name}")
     await update.message.reply_text("👋 أهلاً! البوت شغال على Webhook.")
     
 # أمر /start_class من الأشخاص المصرح لهم
@@ -28,9 +36,18 @@ async def start_class(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("❌ مش مسموحلك تستخدم الأمر ده.")
 
 # أمر /myid (يساعدك تجيب IDك الشخصي)
+# أمر /myid
 async def my_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
-    await update.message.reply_text(f"🔎 ID بتاعك هو: {user.id}")
+    logger.info(f"/myid used by {user.id} - {user.full_name}")
+    await update.message.reply_text(f"🪪 ID بتاعك هو: {user.id}")
+
+# تسجيل المستخدمين اللي بيبعتوا في الجروب
+async def register_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
+    if user:
+        users_set.add(user.id)
+        logger.info(f"User registered: {user.id} - {user.full_name}")
 
 # /chatid
 async def chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -44,18 +61,20 @@ async def register_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def mention_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
+    logger.info(f"/mention_all requested by {user.id} - {user.full_name}")
+
     if user and user.id not in ALLOWED_USERS:
+        logger.warning(f"Unauthorized access attempt by {user.id}")
         await update.message.reply_text("❌ مش مسموحلك تستخدم الأمر ده.")
         return
 
     if not users_set:
+        logger.warning("mention_all used but no users registered.")
         await update.message.reply_text("⚠️ مفيش أعضاء مسجلين لسه.")
         return
 
-    mentions = []
-    for user_id in users_set:
-        mentions.append(f"[شخص](tg://user?id={user_id})")
-    text = "📢 منشن لكل المسجلين:" + " ".join(mentions)
+    mentions = [f"[شخص](tg://user?id={uid})" for uid in users_set]
+    text = "📢 منشن لكل المسجلين:\n" + " ".join(mentions)
     await context.bot.send_message(chat_id=GROUP_CHAT_ID, text=text, parse_mode=ParseMode.MARKDOWN)
 
 # إعداد التطبيق وتشغيل البوت

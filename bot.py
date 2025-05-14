@@ -52,8 +52,7 @@ async def mention_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
     mentions = []
     for user_id in users_set:
         mentions.append(f"[شخص](tg://user?id={user_id})")
-    text = "📢 منشن لكل المسجلين:
-" + " ".join(mentions)
+    text = "📢 منشن لكل المسجلين:" + " ".join(mentions)
     await context.bot.send_message(chat_id=GROUP_CHAT_ID, text=text, parse_mode=ParseMode.MARKDOWN)
 
 # إعداد التطبيق وتشغيل البوت

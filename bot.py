@@ -1,9 +1,13 @@
 import os
+import logging
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 from keep_alive import keep_alive  # لتشغيل السيرفر الوهمي
 
 keep_alive()
+
+logging.basicConfig(format='[%(asctime)s] %(levelname)s - %(message)s', level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 TOKEN = os.environ["BOT_TOKEN"]
 GROUP_CHAT_ID = os.environ["GROUP_CHAT_ID"]

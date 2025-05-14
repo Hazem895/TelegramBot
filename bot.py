@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 TOKEN = os.environ["BOT_TOKEN"]
 GROUP_CHAT_ID = os.environ["GROUP_CHAT_ID"]
-ALLOWED_USERS = os.environ["ALLOWED_USERS"]
+ALLOWED_USERS = ALLOWED_USERS = list(map(int, os.environ["ALLOWED_USERS"].split(",")))
 
 # أمر /start في الخاص
 # أوامر البوت

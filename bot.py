@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 TOKEN = os.environ["BOT_TOKEN"]
 GROUP_CHAT_ID = os.environ["GROUP_CHAT_ID"]
 ALLOWED_USERS = ALLOWED_USERS = list(map(int, os.environ["ALLOWED_USERS"].split(",")))
+users_set = set()
 
 # أمر /start في الخاص
 # أوامر البوت
@@ -22,6 +23,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def start_class(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
+    logger.info(f"/startclass used by {user.id} - {user.full_name}")
     if user.id in ALLOWED_USERS:
         await context.bot.send_message(chat_id=GROUP_CHAT_ID, text="📚 الحصة بدأت! يلا نبدأ!")
     else:

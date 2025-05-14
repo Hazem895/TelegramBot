@@ -85,10 +85,11 @@ def webhook():
 # Webhook run
 if __name__ == "__main__":
     try:
-    application.run_webhook(
+        application.run_webhook(
         listen="0.0.0.0",
         port=int(os.environ.get("PORT", 10000)),
         webhook_url=f"{os.environ['RENDER_URL']}/{TOKEN}"
     )
-except Exception as e:
-    logger.error(f"Error occurred: {e}")
+    except Exception as e:
+        logger.error(f"Error occurred: {e}")
+

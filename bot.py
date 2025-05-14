@@ -5,14 +5,12 @@ from flask import Flask, request
 from telegram import Update, Bot
 from telegram.constants import ParseMode
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
-from dotenv import load_dotenv
 
 # إعداد اللوجز
 logging.basicConfig(format='[%(asctime)s] %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # تحميل المتغيرات
-load_dotenv()
 TOKEN = os.environ["BOT_TOKEN"]
 GROUP_CHAT_ID = int(os.environ["GROUP_CHAT_ID"])
 ALLOWED_USERS = list(map(int, os.environ["ALLOWED_USERS"].split(",")))

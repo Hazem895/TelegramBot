@@ -1,26 +1,15 @@
 import os
-import logging
-import asyncio
-from flask import Flask, request
-from telegram import Update, Bot
-from telegram.constants import ParseMode
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
+from telegram import Update
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+from keep_alive import keep_alive  # لتشغيل السيرفر الوهمي
 
-# إعداد اللوجز
-logging.basicConfig(format='[%(asctime)s] %(levelname)s - %(message)s', level=logging.INFO)
-logger = logging.getLogger(__name__)
+keep_alive()
 
-# تحميل المتغيرات
 TOKEN = os.environ["BOT_TOKEN"]
-GROUP_CHAT_ID = int(os.environ["GROUP_CHAT_ID"])
-ALLOWED_USERS = list(map(int, os.environ["ALLOWED_USERS"].split(",")))
+GROUP_CHAT_ID = os.environ["GROUP_CHAT_ID"]
+ALLOWED_USERS = os.environ["ALLOWED_USERS"]
 
-bot = Bot(token=TOKEN)
-app = Flask(__name__)
-application = ApplicationBuilder().token(TOKEN).build()
-
-users_set = set()
-
+# أمر /start في الخاص
 # أوامر البوت
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
@@ -60,34 +49,18 @@ async def mention_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
     mentions = [f"[شخص](tg://user?id={uid})" for uid in users_set]
     text = "📢 منشن لكل المسجلين:\n" + " ".join(mentions)
     await context.bot.send_message(chat_id=GROUP_CHAT_ID, text=text, parse_mode=ParseMode.MARKDOWN)
+    
+# /chatid
+async def chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat = update.effective_chat
+    await update.message.reply_text(f"Chat ID: {chat.id}")
 
-# Handlers
-application.add_handler(CommandHandler("start", start))
-application.add_handler(CommandHandler("start_class", start_class))
-application.add_handler(CommandHandler("myid", my_id))
-application.add_handler(CommandHandler("chatid", chat_id))
-application.add_handler(CommandHandler("mention_all", mention_all))
-application.add_handler(MessageHandler(filters.TEXT & filters.Chat(GROUP_CHAT_ID), register_user))
+# إعداد التطبيق وتشغيل البوت
+app = ApplicationBuilder().token(TOKEN).build()
+app.add_handler(CommandHandler("start", start))
+app.add_handler(CommandHandler("startclass", start_class))
+app.add_handler(CommandHandler("myid", my_id))
+app.add_handler(CommandHandler("chatid", chat_id))
+app.add_handler(CommandHandler("mentionall", mention_all))
 
-# Routes
-@app.route("/")
-def home():
-    return "بوت شغال ✅"
-
-@app.route(f"/{TOKEN}", methods=["POST"])
-def webhook():
-    update = Update.de_json(request.get_json(force=True), bot)
-    asyncio.run(application.process_update(update))
-    return "ok"
-
-# Webhook run
-if __name__ == "__main__":
-    try:
-        application.run_webhook(
-        listen="0.0.0.0",
-        port=int(os.environ.get("PORT", 10000)),
-        webhook_url=f"{os.environ['RENDER_URL']}/{TOKEN}"
-    )
-    except Exception as e:
-        logger.error(f"Error occurred: {e}")
-
+app.run_polling()

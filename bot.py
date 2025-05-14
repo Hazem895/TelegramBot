@@ -1,7 +1,7 @@
 import os
 import logging
 from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 from keep_alive import keep_alive  # لتشغيل السيرفر الوهمي
 
 keep_alive()
@@ -68,5 +68,5 @@ app.add_handler(CommandHandler("startclass", start_class))
 app.add_handler(CommandHandler("myid", my_id))
 app.add_handler(CommandHandler("chatid", chat_id))
 app.add_handler(CommandHandler("mentionall", mention_all))
-
+app.add_handler(MessageHandler(filters.TEXT & filters.Chat(GROUP_CHAT_ID), register_user))
 app.run_polling()
